@@ -7,7 +7,7 @@ Application that automatically detect added service filter and apply it to the e
 ### Installation
 
 1. Clone Git Repository
-       `$ git clone git@gitlab.com:vineethkrishnan/salesdock-products.git `
+       `$ git clone git@github.com:vineethkrishnan/salesdock-product-listing.git `
 2. Navigate to project root 
        `$ cd  salesdock-products`
 3. Run 
