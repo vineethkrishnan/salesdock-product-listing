@@ -25,54 +25,41 @@ Now got to API End point http://localhost:8000/api/products to view the product 
 ### How to add new Availability Service
 Suppose we want to add a new service that filter the product name starts with `sales`
 > Go to `app/AvailabilityServices`
-* Create a new service file `Name.php` that implements `AvailableServiceInterface` Contract
+* Create a new service file `myNewServiceRule.php` that extends `App\AvailabilityServices\Provider\RuleServiceProvider` which was implemented with `App\AvailabilityServices\Contracts\AvailabilityServiceInterface`
 
 ```php
 
 <?php
+
+
 namespace App\AvailabilityServices;
 
 
-use Illuminate\Database\Eloquent\Builder;
+use App\AvailabilityServices\Provider\RuleServiceProvider;
 
-class Name implements AvailableServiceInterface
+class ruleNameMustStartWithSalesAndPriceBelow1000 extends RuleServiceProvider
 {
-    /**
-     * Define property for applying the rule
-     *
-     * @return string
-     */
-    public function property() : string
+
+    public function checkForNameStartsWithSales()
     {
-        return 'name';
+        $this->setRule("Product name must starts with 'sales'");
+        $this->queryBuilder->where("name", "LIKE", "sales%");
     }
 
-    /**
-     * @return string
-     */
-    public function rule(): string
+    public function checkForPriceBelow1000()
     {
-        return  $this->property()." must start with sales";
+        $this->setRule('Price must be below 1000');
+        $this->queryBuilder->where('price', '<', 1000);
     }
 
-    /**
-     * Apply Filter Rule
-     *
-     * @param Builder $builder
-     * @return Builder
-     */
-    public function filter(Builder $builder) : Builder
-    {
-        return $builder->where($this->property(), 'LIKE', 'sales%');
-    }
 }
+
 ```
 
-#### Code Anatomy
-* `public function property()` defines the property on which we want to apply the filter rule
-* `public function rule()` return the rule applied by this service.
-* `public function filter(Builder $builder)` accept the query builder and apply the rule and return the modified query builder.
-
+#### NOTE
+* The only thing important here is, we must extend our `ServiceClass` to `RuleServiceProvider`.
+* Access modifier for the member function should be `public` or `protected`. Never define member function with `private` access because `RouteServiceProvider` could not access private methods.
+* `$this->setRule($rule)` is mandatory at this point but we can auto detect the rule from method name, but we have to restrict other developers to follow RuleService method naming convention to be self explanatory  like checkColorMustBeWhite, checkSpeedLessThan100, checkPriceBetween50And5000 etc.,
 
 > Now the product listing on api end point has been modified with the new service rule
 
@@ -80,22 +67,38 @@ class Name implements AvailableServiceInterface
 
 ```json
 {
-    "applied_service_rules": [
+    "rules": [
         {
-            "service": "\\App\\AvailabilityServices\\Name",
-            "rule": "name must start with sales"
+            "service": "\\App\\AvailabilityServices\\ruleColorWhiteOrYellow",
+            "rule": [
+              "Color must be white or yellow"
+            ]
+        },
+        {
+            "service": "\\App\\AvailabilityServices\\rulePriceBetween500And1000AndNameStartWithM",
+            "rule": [
+                "Price Between 500 & 1000",
+                "Name starts with 'lg'"
+            ]
+        },
+        {
+            "service": "\\App\\AvailabilityServices\\ruleSpeed100ColorRed",
+            "rule": [
+                "Check Speed Less Than 100",
+                "Check Color not red"
+            ]
         }
     ],
     "data": [
         {
             "id": 5,
-            "name": "salesdock",
-            "color": "yellow",
+            "name": "LG Electronics",
+            "color": "white",
             "speed": 80,
-            "price": 72.02,
+            "price": 523.43,
             "created_at": "2019-12-18 14:58:33",
             "updated_at": "2019-12-18 14:58:33"
         }
-]
+    ]
 }
 ```

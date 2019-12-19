@@ -4,12 +4,12 @@ namespace App\Providers;
 
 use App\AvailabilityServices\AvailableServiceInterface;
 use App\AvailabilityServices\Color;
-use App\Traits\AvailableFilters;
+use App\Traits\AvailableServices;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    use AvailableFilters;
+    use AvailableServices;
     /**
      * Register any application services.
      *
@@ -19,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
     {
 
         /** Register Services */
-        collect($this->filters())->each(function($service){
+        collect($this->getServices())->each(function($service){
             $this->app->singleton(class_basename($service), function($app) use ($service){
                 return new $service();
             });

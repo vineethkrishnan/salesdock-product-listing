@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use App\Traits\AvailableFilters;
+use App\Traits\AvailableServices;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
 
-    use AvailableFilters;
+    use AvailableServices;
 
     /**
      * Prepare the model and apply all service rule
@@ -17,11 +17,11 @@ class Product extends Model
     {
         $queryBuilder = $this->newQuery();
         $response = [];
-        collect($this->filters())->each(function ($service) use ($queryBuilder, &$response) {
+        foreach ($this->getServices() as $service){
             $serviceInstance = app()->make($service);
-            $response['applied_service_rules'][] = ['service' => $service, 'rule' => $serviceInstance->rule()];
             $serviceInstance->filter($queryBuilder);
-        });
+            $response['rules'][] = ['service' => $service, 'rule' => $serviceInstance->getRules()];
+        }
         $response['data'] = $queryBuilder->get();
 
         return $response;
